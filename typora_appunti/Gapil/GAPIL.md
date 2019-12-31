@@ -233,9 +233,67 @@ v e l stanno per vector e list.
 
 con fork si crea un nuovo processo, con exec si lancia un nuovo programma, con exit e wait si effettua e si verifica la conclusione dei processi.
 
+**Controllo di accesso**
 
+il sistema associa UserID UID e GroupID GID ad ogni utente.
+Tutte le operazioni del sistema vengono compiute dai processi, quindi è necessario che ad ogni processo sia identificato chi lo ha lanciato per fini di controllo permessi.
 
+Se ho bisogno di poter impersonare un altro utente per un limitato insieme di operazioni, allora si introducono due gruppi di identificatori real ed effective.
 
+UID effettivo e GID effettivo usati nelle verifiche dei permessi del processo e per il controllo di accesso ai file
 
+`screen` crea terminali multipli su una console
 
+**Priorità processi**
+
+carateristica di sistema multitasking è il preemptive scheduling, cioè non sono i singoli processi, ma il kernel stesso a decidere quando la CPU deve essere passata ad un altro processo.
+Non è affatto detto che dare ad un programma la massima priorità di esecuzione abbia risultati significativi in termini di prestazioni.
+Gli stati sono
+
+* runnable, R
+* sleep S
+* uninterruptible sleep D
+* stopped T
+* zombie Z
+* killable D
+
+Il meccanismo tradizionale UNIX è sempre stato scheduling con priorità dinamiche, in modo da assicurare che tutti i processi vadano in esecuzione, ma per real time introdotta priorità assoluta o statica, la priorità è visibile in `PR` nel comando `top`
+
+La dimensione del time-slice ( in cui il processo esegue ) è determinato dal niceness di un processo, un valore positivo indica una time-slice più breve ma una priorità più alta.
+
+Nice value is a user-space and priority PR is  the process's actual priority that use by Linux kernel. In linux system  priorities are 0 to 139 in which 0 to 99 for real time and 100 to 139  for users.  nice value range is -20 to +19 where -20 is highest, 0 default and +19  is lowest. relation between nice value and priority is : 
+
+```
+PR = 20 + NI
+```
+
+è stato creato un sistema modulare che permette di cambiare lo scheduler a sistema attivo!!
+
+**Tecniche di scheduling Real Time**
+
+* FIFO
+* RR Round Robin identico al FIFO ma ogni processo esegue al massimo per una time-slice
+
+Ogni processo può rilasciare volontariamente la CPU in modo da consentire agli altri processi di essere eseguiti, la funzione è `sched_yield`
+
+Uno dei problemi che si pongono nei sistemi multiprocessore è infatti quello del cosiddetto ping pong. cioè se viene stoppato su un processore e rimandaro in esecuzione su uno diverso, la cache è diversa!! soluzione, CPU affiinity
+
+architetture NUMA - Non Uniform Memory Access
+
+LA CPU NON E' L'UNICA RISORSA, per questo esiste anche l'I/O scheduler per l'accesso al disco. LA sceltadi uno scheduler I/O si può fare in maniera generica all'avvio del kernelcon il parametro di avvio elevator, cui assegnare il nome dello scheduler, ma se ne può anche indicare uno specifico per l'accesso al singolo disco scrivendo nel file `/sys/block/<dev>/queue/scheduler` 
+
+Casi tipici di race condition si hanno quando diversi processi accedono allo stesso file, o nell'accesso a meccanismi di intercomunicazione come la memoria condivisa.
+
+**LA GESTIONE DI FILE E DIRECTORY**
+
+il concetto di everything is a file è stato implementato attraverso il Virtual File System.
+
+si hanno  4 oggetti correlati:
+
+* filesystem
+* dentry  directory entry (oggetti che il kernl usa per fare il pathname resolution)
+* inode oggetto usato dal kernel per identificare un file
+* file
+
+Ogni volta che una system call specifica un pathname viene effettuata una ricerca nella dcache per ottenere immediatamante la dentry corrispondente che a sua volta ci darà tramite l'inode il riferimento al file.
 

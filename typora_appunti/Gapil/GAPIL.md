@@ -297,3 +297,43 @@ si hanno  4 oggetti correlati:
 
 Ogni volta che una system call specifica un pathname viene effettuata una ricerca nella dcache per ottenere immediatamante la dentry corrispondente che a sua volta ci darà tramite l'inode il riferimento al file.
 
+L'inode contiene i metadati, tipo di file, permessi di accesso, dimensioni , puntatori. Le informazioni che la funzione stat fornisce provengono dall'inode.
+
+il nome non è una proprietà del file e non viene mantenuto nell'inode.
+
+fra le proprietà di un file mantenute nell'inode c'è anche il contatore con il numero di riferimenti che sono stati fatti ad esso, il cosideto link count.
+Solo quando questo contatore si annulla i dati del file possoo essere effettivamente cancellati dal disco.
+
+unlink NON cancella i dati del file, ma elimina la relativa voce da una directory ed decrementare il numro di riferimenti all'inode.
+
+Ogni inode è identificato da un numero univoco.
+
+Le directory sono implementate ome una linked list con voci di dimensione variabile.
+
+Ciascuna voce della lista contiene il numero  di inode, la sua lungehzza il nome del file e la sua lunghezza. ext3 è un filesystem journaled, cioè in grado di eseguire una registrazione delle operazioni di scrittura su un giornale in modo da poter il ripristino della coerenza dei dati del filesystem in brevissimo tempo in caso di interruzione improvvisa della corrente.
+
+fstatfs e fstat permettono di avere info generali circa il filesystem su cui si trova un file, e queste info vengono restituite all'interno della struttura buf
+
+int fstatfs( int fd, struct statfs *buf)
+
+int statfs( const char *path, struct statfs *buf )
+
+```
+struct statfs {
+               __fsword_t f_type;    /* Type of filesystem (see below) */
+               __fsword_t f_bsize;   /* Optimal transfer block size */
+               fsblkcnt_t f_blocks;  /* Total data blocks in filesystem */
+               fsblkcnt_t f_bfree;   /* Free blocks in filesystem */
+               fsblkcnt_t f_bavail;  /* Free blocks available to
+                                        unprivileged user */
+               fsfilcnt_t f_files;   /* Total file nodes in filesystem */
+               fsfilcnt_t f_ffree;   /* Free file nodes in filesystem */
+               fsid_t     f_fsid;    /* Filesystem ID */
+               __fsword_t f_namelen; /* Maximum length of filenames */
+               __fsword_t f_frsize;  /* Fragment size (since Linux 2.6) */
+               __fsword_t f_flags;   /* Mount flags of filesystem
+                                        (since Linux 2.6.36) */
+               __fsword_t f_spare[xxx];
+                               /* Padding bytes reserved for future use */
+           };
+```
